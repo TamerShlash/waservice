@@ -1,0 +1,24 @@
+### Ruby ###
+
+*.gem
+*.rbc
+/.config
+/coverage/
+.rspec
+/spec/tmp
+/spec/reports/
+/tmp/
+/log
+/db/*.sqlite3
+
+## Environment normalisation:
+/.bundle/
+
+# unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
+.rvmrc
+
+# RubyMine
+.idea/
+
+# Gedit
+*~

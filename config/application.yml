@@ -1,0 +1,6 @@
+development:
+  stub: stub
+test:
+  stub: stub
+production:
+  stub: stub
