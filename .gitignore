@@ -1,3 +1,6 @@
+### waservice specific ###
+config/credentials.yml
+
 ### Ruby ###
 
 *.gem
