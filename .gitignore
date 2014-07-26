@@ -2,7 +2,6 @@
 config/credentials.yml
 
 ### Ruby ###
-
 *.gem
 *.rbc
 /.config
