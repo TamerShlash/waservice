@@ -2,16 +2,39 @@ require 'bundler'
 Bundler.require
 
 at_exit do
-  ## TODO add code to be executed on exit here
+
+  # First off, we need to remove the whenever cronjobs:
+  `whenever -c`
+
+  # Now we need to stop the listener process ourselves.
+  # If 1 ("HUP") doesn't work, use 15 ("TERM"), if still not working use 2 ("SIGINT"), then finally use 9 ("KILL")
+  # See this link for more details: http://meinit.nl/the-3-most-important-kill-signals-on-the-linux-unix-command-line
+
+  pid_file = File.expand_path(File.join(File.dirname(__FILE__),'tmp','listener.pid'))
+  log_file = File.expand_path(File.join(File.dirname(__FILE__),'tmp','watcher.log'))
+  begin
+    pid = File.open(pid_file, 'r') {|f| f.read }.to_i
+    Process.kill 1, pid
+    File.open(log_file, 'a') { |f| f.puts("[#{Time.now}] sinatra: Stopped the listener | pid=#{pid}") }
+  rescue Errno::ENOENT
+    File.open(log_file, 'a') { |f| f.puts("[#{Time.now}] sinatra: Pid file does not exist!") }
+  rescue Errno::ESRCH
+    File.open(log_file, 'a') { |f| f.puts("[#{Time.now}] sinatra: Process does not exist | pid=#{pid}")}
+  ensure
+    File.delete pid_file if File.exists? pid_file
+  end
+
 end
 
 require 'sinatra'
 require 'sinatra/activerecord'
 require 'sinatra/config_file'
 
-config_file File.join(__dir__, 'config', 'application.yml')
-response_templates = YAML.load_file(File.join(__dir__, 'responses.yml'))
+config_file File.join(File.dirname(__FILE__), 'config', 'application.yml')
+responses = YAML.load_file(File.join(File.dirname(__FILE__), 'responses.yml'))
 
+# On startup, we need to - whenever to start the watcher cronjob
+`whenever -i`
 
 class User < ActiveRecord::Base
 
@@ -78,8 +101,8 @@ def check_availability_for phone_number
   #   'status': 'The status of availability. Only present if valid is true',
   #   'place': 'The Name of the Place. Only present if valid is true'
   # }
-  {type: 'text', content: response_templates['availability']['available'] % place}
-  {type: 'text', content: response_templates['availability']['unavail'] % place}
+  {type: 'text', content: responses['availability']['available'] % place}
+  {type: 'text', content: responses['availability']['unavail'] % place}
 end
 
 def modem_config modem_type
@@ -120,15 +143,15 @@ post "/" do
 
   case content
     when '0'
-      res = { type: 'text', content: response_templates['main_menu'] }
+      res = { type: 'text', content: responses['main_menu'] }
     when '1'
       res = billing_info_of jid
     when '2'
-      res = {type: 'text', content: response_templates['availability']['intro']}
+      res = {type: 'text', content: responses['availability']['intro']}
     when '3'
-      res = {type: 'text', content: response_templates['modem']['intro']}
+      res = {type: 'text', content: responses['modem']['intro']}
     when '4'
-      res = {type: 'text', content: response_templates['contact']['intro']}
+      res = {type: 'text', content: responses['contact']['intro']}
     when /^\d{3}-\d{7}$/i
       res = check_availability_for content
     when /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}\s/im
@@ -137,7 +160,7 @@ post "/" do
       modem_type = /^modem-(.{4,20})$/i.match(content)[1].downcase
       res = modem_config(modem_type)
     else
-      res = {type: 'text', content: response_templates['other']['invalid']}
+      res = {type: 'text', content: responses['other']['invalid']}
   end
 
   content_type :json

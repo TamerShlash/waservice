@@ -7,6 +7,7 @@ gem 'activerecord'
 gem 'sinatra-activerecord'
 gem 'sinatra-contrib', require: false
 gem 'pony'
+gem 'whenever', require: false
 
 group :development do
   gem 'shotgun'
