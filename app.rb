@@ -33,7 +33,7 @@ require 'sinatra/config_file'
 config_file File.join(File.dirname(__FILE__), 'config', 'application.yml')
 responses = YAML.load_file(File.join(File.dirname(__FILE__), 'responses.yml'))
 
-# On startup, we need to - whenever to start the watcher cronjob
+# On startup, we need to run whenever to start the watcher cronjob
 `whenever -i`
 
 class User < ActiveRecord::Base
