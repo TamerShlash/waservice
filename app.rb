@@ -29,9 +29,10 @@ end
 require 'sinatra'
 require 'sinatra/activerecord'
 require 'sinatra/config_file'
+require 'open-uri'
 
 config_file File.join(File.dirname(__FILE__), 'config', 'application.yml')
-responses = YAML.load_file(File.join(File.dirname(__FILE__), 'responses.yml'))
+set :responses, YAML.load_file(File.join(File.dirname(__FILE__), 'responses.yml'))
 
 # On startup, we need to run whenever to start the watcher cronjob
 `whenever -i`
@@ -95,14 +96,28 @@ def billing_info_of jid
 end
 
 def check_availability_for phone_number
-  ## Here goes code for contacting Ahmad's api and checking availability, response should contain the following:
+
+  ## Contacts website api to check availability, response should contain the following:
   # {
   #   'valid': true if the phone number is valid (رقم المحافظة والمقسم صالحين), false if not valid,
-  #   'status': 'The status of availability. Only present if valid is true',
+  #   'status': 'The status of availability. Only present if valid is true', either "available" or "unavailable"
   #   'place': 'The Name of the Place. Only present if valid is true'
   # }
-  {type: 'text', content: responses['availability']['available'] % place}
-  {type: 'text', content: responses['availability']['unavail'] % place}
+
+  # Do not forget to include ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE to pybass SSL validation
+  res = open(settings.availability_url % {phone:phone_number}, {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE})
+  return "error" unless res.status.include? "OK"
+
+  result = JSON.parse(res.read)
+
+  return {type: 'text', content: settings.responses['availability']['invalid']} if result['valid'] == 'false'
+
+  if result['status'] == "available"
+    {type: 'text', content: settings.responses['availability']['available'] % {place: result['place']}}
+  else
+    {type: 'text', content: settings.responses['availability']['unavail'] % {place: result['place']}}
+  end
+
 end
 
 def modem_config modem_type
@@ -132,6 +147,10 @@ def process_content content
   res
 end
 
+get '/' do
+  settings.responses['availability']['invalid']
+end
+
 post "/" do
   unless params[:jid] and params[:content]
     return nil
@@ -143,24 +162,27 @@ post "/" do
 
   case content
     when '0'
-      res = { type: 'text', content: responses['main_menu'] }
+      res = { type: 'text', content: settings.responses['main_menu'] }
     when '1'
-      res = billing_info_of jid
+      res = {type: 'text', content: settings.responses['service_unavailable']}
+#      res = billing_info_of jid
     when '2'
-      res = {type: 'text', content: responses['availability']['intro']}
+      res = {type: 'text', content: settings.responses['availability']['intro']}
     when '3'
-      res = {type: 'text', content: responses['modem']['intro']}
+      res = {type: 'text', content: settings.responses['service_unavailable']}
+#      res = {type: 'text', content: settings.responses['modem']['intro']}
     when '4'
-      res = {type: 'text', content: responses['contact']['intro']}
+      res = {type: 'text', content: settings.responses['service_unavailable']}
+#      res = {type: 'text', content: settings.responses['contact']['intro']}
     when /^\d{3}-\d{7}$/i
       res = check_availability_for content
-    when /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}\s/im
-      email, body = /(^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6})\s(.*)/im.match(content)[1,2]
-    when /^modem-.{4,20}$/i
-      modem_type = /^modem-(.{4,20})$/i.match(content)[1].downcase
-      res = modem_config(modem_type)
+#    when /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}\s/im
+#      email, body = /(^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6})\s(.*)/im.match(content)[1,2]
+#    when /^modem-.{4,20}$/i
+#      modem_type = /^modem-(.{4,20})$/i.match(content)[1].downcase
+#      res = modem_config(modem_type)
     else
-      res = {type: 'text', content: responses['other']['invalid']}
+      res = {type: 'text', content: settings.responses['other']['invalid']}
   end
 
   content_type :json
