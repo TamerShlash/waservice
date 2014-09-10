@@ -1,6 +1,6 @@
 development:
-  stub: stub
+  availability_url: https://www.sawaisp.sy/whatsappapi/check_availability.php?phone_number=%{phone}
 test:
-  stub: stub
+  availability_url: https://www.sawaisp.sy/whatsappapi/check_availability.php?phone_number=%{phone}
 production:
-  stub: stub
+  availability_url: https://www.sawaisp.sy/whatsappapi/check_availability.php?phone_number=%{phone}
