@@ -88,6 +88,9 @@ class WhatsappListenerClient:
 
 	def onMessageReceived(self, messageId, jid, messageContent, timestamp, wantsReceipt, pushName, isBroadCast):
 
+		if wantsReceipt and self.sendReceipts:
+			self.methodsInterface.call("message_ack", (jid, messageId))
+
 		payload={'jid': jid, 'content': messageContent}
 		# r = requests.get('http://localhost:4567/', params=payload)
 		r = requests.post('http://localhost:4567/', data=payload)
