@@ -174,7 +174,7 @@ post "/" do
 #    when '4'
 #      res = {type: 'text', content: settings.responses['service_unavailable']}
 #      res = {type: 'text', content: settings.responses['contact']['intro']}
-    when /^\d{3}-\d{7}$/i
+    when /^\d{3}-\d{6,7}$/i
       res = check_availability_for content
 #    when /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}\s/im
 #      email, body = /(^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6})\s(.*)/im.match(content)[1,2]
