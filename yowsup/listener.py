@@ -7,7 +7,8 @@
 # https://github.com/tgalal/yowsup/issues/178#issuecomment-33261219
 
 # Install dependencies: pip install -r requirements.txt
-import os, sys, threading, time, datetime, argparse, base64, hashlib, requests, json, yaml
+import os, sys, threading, time, datetime, base64, hashlib, requests, json, yaml
+# import argparse
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir)
 from Yowsup.connectionmanager import YowsupConnectionManager
