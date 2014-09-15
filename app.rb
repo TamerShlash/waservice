@@ -161,18 +161,18 @@ post "/" do
   res = {type: '', content: ''}
 
   case content
-    when '0'
-      res = { type: 'text', content: settings.responses['main_menu'] }
-    when '1'
-      res = {type: 'text', content: settings.responses['service_unavailable']}
+#    when '0'
+#      res = { type: 'text', content: settings.responses['main_menu'] }
+#    when '1'
+#      res = {type: 'text', content: settings.responses['service_unavailable']}
 #      res = billing_info_of jid
-    when '2'
-      res = {type: 'text', content: settings.responses['availability']['intro']}
-    when '3'
-      res = {type: 'text', content: settings.responses['service_unavailable']}
+#    when '2'
+#      res = {type: 'text', content: settings.responses['availability']['intro']}
+#    when '3'
+#      res = {type: 'text', content: settings.responses['service_unavailable']}
 #      res = {type: 'text', content: settings.responses['modem']['intro']}
-    when '4'
-      res = {type: 'text', content: settings.responses['service_unavailable']}
+#    when '4'
+#      res = {type: 'text', content: settings.responses['service_unavailable']}
 #      res = {type: 'text', content: settings.responses['contact']['intro']}
     when /^\d{3}-\d{7}$/i
       res = check_availability_for content
@@ -182,7 +182,8 @@ post "/" do
 #      modem_type = /^modem-(.{4,20})$/i.match(content)[1].downcase
 #      res = modem_config(modem_type)
     else
-      res = {type: 'text', content: settings.responses['other']['invalid']}
+      res = {type: 'text', content: settings.responses['availability']['intro_temp']}
+#      res = {type: 'text', content: settings.responses['other']['invalid']}
   end
 
   content_type :json
