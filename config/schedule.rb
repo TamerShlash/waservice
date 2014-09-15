@@ -21,5 +21,5 @@
 
 set :output, File.join(File.expand_path('.'),'tmp','watcher.log')
 every 2.minutes do
-  command "/usr/bin/ruby #{File.join(File.expand_path('.'),'scripts','watcher.rb')}"
+  command "#{`whereis ruby | cut -d' ' -f2`} #{File.join(File.expand_path('.'),'scripts','watcher.rb')}"
 end
